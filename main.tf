@@ -5,7 +5,9 @@ provider "aws" {
 resource "aws_instance" "flask_server" {
   ami           = "ami-0c02fb55956c7d316"  # ejemplo Ubuntu 22.04 en us-east-1
   instance_type = "t2.micro"
-  #key_name      = "mi-key-aws"            # tu key pair en AWS
+  key_name = "IoT_Key"
+
+  associate_public_ip_address = true
 
   user_data = <<-EOF
               #!/bin/bash
@@ -46,23 +48,38 @@ resource "aws_instance" "flask_server" {
     Name = "FlaskServer"
   }
 
-  # Seguridad: permitir puerto 5000
   vpc_security_group_ids = [aws_security_group.flask_sg.id]
 }
 
 resource "aws_security_group" "flask_sg" {
   name        = "flask_sg"
-  description = "Allow HTTP"
+  description = "Allow HTTP and SSH"
+
+  # HTTP de tu app (5000)
   ingress {
     from_port   = 5000
     to_port     = 5000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # SSH (22) — idealmente restrínge a tu IP pública con /32
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # reemplaza por tu IP/32 para mayor seguridad
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+# Salida conveniente con la IP pública
+output "ec2_public_ip" {
+  value = aws_instance.flask_server.public_ip
 }

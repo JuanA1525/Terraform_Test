@@ -9,26 +9,44 @@ resource "aws_instance" "flask_server" {
 
   user_data = <<-EOF
               #!/bin/bash
+              set -e
+
+              # Variables
+              REPO_URL="https://github.com/JuanA1525/Terraform_Test"
+              APP_DIR="/home/ubuntu/Terraform_Test"
+
               apt update -y
-              apt install python3-pip -y
-              pip3 install Flask==2.3.2
-              cat <<EOT >> /home/ubuntu/app.py
-              from flask import Flask
-              app = Flask(__name__)
-              @app.route("/")
-              def hello():
-                  return "Hola Mundo desde Flask en EC2!"
-              if __name__ == "__main__":
-                  app.run(host="0.0.0.0", port=80)
-              EOT
-              nohup python3 /home/ubuntu/app.py &
+              apt install -y python3-pip git
+
+              # Clonar el repo (si ya existe, hacer pull)
+              if [ ! -d "$APP_DIR" ]; then
+                git clone "$REPO_URL" "$APP_DIR"
+                chown -R ubuntu:ubuntu "$APP_DIR"
+              else
+                cd "$APP_DIR"
+                git pull
+              fi
+
+              cd "$APP_DIR"
+
+              # Instalar requirements si existe requirements.txt
+              if [ -f "requirements.txt" ]; then
+                pip3 install -r requirements.txt
+              else
+                # fallback: asegurar Flask disponible
+                pip3 install Flask==2.3.2
+              fi
+
+              # Ejecutar la app (suponer app.py en la raíz del repo)
+              # Ejecutar como usuario ubuntu y redirigir logs
+              nohup sudo -u ubuntu python3 "$APP_DIR/app.py" > /var/log/flask_app.log 2>&1 &
               EOF
 
   tags = {
     Name = "FlaskServer"
   }
 
-  # Seguridad: permitir puerto 80
+  # Seguridad: permitir puerto 5000
   vpc_security_group_ids = [aws_security_group.flask_sg.id]
 }
 
@@ -36,8 +54,8 @@ resource "aws_security_group" "flask_sg" {
   name        = "flask_sg"
   description = "Allow HTTP"
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 5000
+    to_port     = 5000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Equipos · {{ tournament.name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card bg-card h-100">
+      <div class="card-body">
+        <h2 class="h5 mb-3"><i class="bi bi-people"></i> Equipos inscritos ({{ teams|length }}/{{ tournament.size }})</h2>
+        {% if teams %}
+          <div class="row g-3">
+            {% for team in teams %}
+            <div class="col-md-6">
+              <div class="team-card d-flex align-items-center p-3 h-100">
+                {% if team.logo_url %}
+                  <img class="rounded me-3" src="{{ team.logo_url }}" alt="logo" width="44" height="44" onerror="this.style.display='none'">
+                {% else %}
+                  <div class="placeholder-logo me-3"><i class="bi bi-shield"></i></div>
+                {% endif %}
+                <div class="fw-semibold">{{ team.name }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info">Aún no hay equipos inscritos.</div>
+        {% endif %}
+        <div class="mt-3">
+          <a class="btn btn-outline-light" href="{{ url_for('tournament_detail', tournament_id=tournament.id) }}"><i class="bi bi-diagram-3"></i> Ir al torneo</a>
+          {% if can_generate %}
+            <form class="d-inline" method="post" action="{{ url_for('tournament_generate_bracket', tournament_id=tournament.id) }}">
+              <button class="btn btn-primary"><i class="bi bi-shuffle"></i> Generar bracket</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card bg-card h-100">
+      <div class="card-body">
+        <h2 class="h5 mb-3"><i class="bi bi-plus-circle"></i> Agregar equipo</h2>
+        <form method="post">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.name.label(class='form-label') }}
+            {{ form.name(class='form-control', placeholder='Nombre del equipo') }}
+            {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.logo_url.label(class='form-label') }}
+            {{ form.logo_url(class='form-control', placeholder='https://.../logo.png') }}
+          </div>
+          <button class="btn btn-primary" type="submit">{{ form.submit.label.text }}</button>
+        </form>
+        <div class="text-secondary small mt-3">Tip: agrega exactamente {{ tournament.size }} equipos para habilitar el bracket.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

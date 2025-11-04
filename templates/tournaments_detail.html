@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ tournament.name }} · Bracket{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="h4 mb-1"><i class="bi bi-trophy text-warning"></i> {{ tournament.name }}</h1>
+    <div class="text-secondary small">Juego: {{ tournament.game }} · {{ tournament.size }} equipos</div>
+  </div>
+  <div>
+    <a class="btn btn-outline-light me-2" href="{{ url_for('tournament_teams', tournament_id=tournament.id) }}"><i class="bi bi-people"></i> Equipos</a>
+    <a class="btn btn-outline-info" href="{{ url_for('tournament_bracket_json', tournament_id=tournament.id) }}" target="_blank"><i class="bi bi-code-slash"></i> Bracket JSON</a>
+  </div>
+</div>
+
+{% if champion %}
+  <div class="alert alert-success d-flex align-items-center" role="alert" data-champion="{{ champion.name }}">
+    <i class="bi bi-award fs-4 me-2"></i>
+    <div><strong>¡Campeón:</strong> {{ champion.name }} 🎉</div>
+  </div>
+{% endif %}
+
+{% if bracket and bracket|length %}
+  <div class="bracket-grid">
+    {% for matches in bracket %}
+      <div class="bracket-round">
+        <div class="round-title">Ronda {{ loop.index }}</div>
+        {% for m in matches %}
+          <div class="match-card">
+            <div class="d-flex justify-content-between">
+              <div class="team-line {{ 'winner' if m.winner == m.team1 else '' }}">{{ m.team1 or 'TBD' }}</div>
+              <div class="score-pill">{{ m.score1 if m.score1 is not none else '-' }}</div>
+            </div>
+            <div class="d-flex justify-content-between">
+              <div class="team-line {{ 'winner' if m.winner == m.team2 else '' }}">{{ m.team2 or 'TBD' }}</div>
+              <div class="score-pill">{{ m.score2 if m.score2 is not none else '-' }}</div>
+            </div>
+            <div class="mt-2 text-end">
+              {% if m.team1 and m.team2 %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('match_edit', match_id=m.id) }}"><i class="bi bi-pencil-square"></i> Editar</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">Aún no hay bracket generado.
+    {% if tournament.teams|length == tournament.size %}
+      <form class="d-inline" method="post" action="{{ url_for('tournament_generate_bracket', tournament_id=tournament.id) }}">
+        <button class="btn btn-primary ms-2"><i class="bi bi-shuffle"></i> Generar ahora</button>
+      </form>
+    {% else %}
+      Agrega equipos hasta completar {{ tournament.size }}.
+    {% endif %}
+  </div>
+{% endif %}
+
+{% endblock %}

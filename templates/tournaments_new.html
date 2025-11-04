@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo torneo · FIFA Brackets{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card bg-card">
+      <div class="card-body">
+        <h1 class="h4 mb-3"><i class="bi bi-trophy"></i> Crear nuevo torneo</h1>
+        <form method="post">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.name.label(class='form-label') }}
+            {{ form.name(class='form-control', placeholder='Nombre legendario del torneo') }}
+            {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.game.label(class='form-label') }}
+            {{ form.game(class='form-control', placeholder='FIFA 24') }}
+          </div>
+          <div class="mb-3">
+            {{ form.size.label(class='form-label') }}
+            {{ form.size(class='form-select') }}
+          </div>
+          <button class="btn btn-primary" type="submit">{{ form.submit.label.text }}</button>
+          <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

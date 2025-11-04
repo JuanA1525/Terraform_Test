@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "flask_server" {
-  ami           = "ami-0c02fb55956c7d316"  # ejemplo Ubuntu 22.04 en us-east-1
+  ami           = "ami-0c398cb65a93047f2"  # ejemplo Ubuntu 22.04 en us-east-1
   instance_type = "t2.micro"
   key_name = "IoT_Key"
 
